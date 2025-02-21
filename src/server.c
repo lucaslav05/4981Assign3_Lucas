@@ -84,10 +84,17 @@ void setup_socket(int *sockfd)
     struct sockaddr_in server_addr;
 
     // Create the socket
-    *sockfd = socket(AF_INET, SOCK_CLOEXEC, 0);
+    *sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if(*sockfd < 0)
     {
         perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Set FD_CLOEXEC flag to the socket descriptor to close it on exec
+    if (fcntl(*sockfd, F_SETFD, FD_CLOEXEC) == -1)
+    {
+        perror("fcntl failed to set FD_CLOEXEC");
         exit(EXIT_FAILURE);
     }
 
