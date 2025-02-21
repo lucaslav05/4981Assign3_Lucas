@@ -214,14 +214,20 @@ void execute_command(char *args[], char *output, size_t output_size)
     else
     {
         ssize_t bytes_read;
-        output[0] = '\0';
+        size_t  total_bytes = 0;
         // Parent process
         close(pipefd[1]);    // Close write end
 
-        while((bytes_read = read(pipefd[0], output + strlen(output), output_size - strlen(output) - 1)) > 0)
+        while((bytes_read = read(pipefd[0], output + total_bytes, output_size - total_bytes - 1)) > 0)
         {
-            output[strlen(output) + (unsigned long)bytes_read] = '\0';
+            total_bytes += (unsigned long)bytes_read;
+            if(total_bytes >= output_size - 1)
+            {
+                break;    // Prevent overflow
+            }
         }
+
+        output[total_bytes] = '\0';    // Ensure null termination
 
         close(pipefd[0]);    // Close read end
 
@@ -231,7 +237,7 @@ void execute_command(char *args[], char *output, size_t output_size)
         // If child process failed, set error message
         if(WIFEXITED(status) && WEXITSTATUS(status) != 0)
         {
-            snprintf(output, output_size, "Error: Command not found or failed to execute.\n");
+            snprintf(output, output_size, "Error: Command failed to execute.\n");
         }
     }
 }
