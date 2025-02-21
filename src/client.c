@@ -77,7 +77,7 @@ int main(const int argc, const char *argv[])
 void setup_socket(int *sockfd, struct sockaddr_in *server_addr, const char *ip, uint16_t port)
 {
     // Create the socket
-    *sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    *sockfd = socket(AF_INET, SOCK_STREAM, 0);  // NOLINT(android-cloexec-socket)
     if(*sockfd < 0)
     {
         perror("socket failed");
