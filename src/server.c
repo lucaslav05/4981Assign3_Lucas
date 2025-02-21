@@ -84,7 +84,7 @@ void setup_socket(int *sockfd)
     struct sockaddr_in server_addr;
 
     // Create the socket
-    *sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    *sockfd = socket(AF_INET, SOCK_CLOEXEC, 0);
     if(*sockfd < 0)
     {
         perror("socket failed");
@@ -183,11 +183,14 @@ void execute_command(char *args[], char *output, size_t output_size)
     }
 
     // Create a pipe
-    if(pipe2(pipefd, O_CLOEXEC) == -1)
+    if(pipe(pipefd) == -1)    // NOLINT(android-cloexec-pipe)
     {
         snprintf(output, output_size, "Error: Failed to create pipe.\n");
         return;
     }
+
+    fcntl(pipefd[0], F_SETFD, FD_CLOEXEC);
+    fcntl(pipefd[1], F_SETFD, FD_CLOEXEC);
 
     pid = fork();
     if(pid < 0)
