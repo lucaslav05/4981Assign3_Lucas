@@ -14,16 +14,15 @@
 #define MAX_ARGS 10
 
 static volatile sig_atomic_t running = 1;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
-void setup_socket(int *sockfd);
-void handle_client(int client_socket);
-void execute_command(char *args[], char *output, size_t output_size);
-int  validate_input(const char *command);
-void tokenize(char buffer[BUFFER_SIZE], char *args[MAX_ARGS]);
-void handle_builtin(char *args[], int client_socket);
-int  is_builtin(char *args[]);
-void free_args(char *args[]);
-void sig_handler(int sig);
+void                         setup_socket(int *sockfd);
+void                         handle_client(int client_socket);
+void                         execute_command(char *args[], char *output, size_t output_size);
+int                          validate_input(const char *command);
+void                         tokenize(char buffer[BUFFER_SIZE], char *args[MAX_ARGS]);
+void                         handle_builtin(char *args[], int client_socket);
+int                          is_builtin(char *args[]);
+void                         free_args(char *args[]);
+void                         sig_handler(int sig);
 
 int main(void)
 {
@@ -84,7 +83,7 @@ void setup_socket(int *sockfd)
     struct sockaddr_in server_addr;
 
     // Create the socket
-    *sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    *sockfd = socket(AF_INET, SOCK_STREAM, 0);    // NOLINT(android-cloexec-socket)
     if(*sockfd < 0)
     {
         perror("socket failed");
@@ -92,7 +91,7 @@ void setup_socket(int *sockfd)
     }
 
     // Set FD_CLOEXEC flag to the socket descriptor to close it on exec
-    if (fcntl(*sockfd, F_SETFD, FD_CLOEXEC) == -1)
+    if(fcntl(*sockfd, F_SETFD, FD_CLOEXEC) == -1)
     {
         perror("fcntl failed to set FD_CLOEXEC");
         exit(EXIT_FAILURE);
