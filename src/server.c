@@ -84,10 +84,7 @@ void setup_socket(int *sockfd)
     struct sockaddr_in server_addr;
 
 // Create the socket
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    *sockfd = socket(AF_INET, SOCK_STREAM, 0); // NOLINT(android-cloexec-socket)
-#pragma clang diagnostic pop
+    *sockfd = socket(AF_INET, SOCK_STREAM, 0);    // NOLINT(android-cloexec-socket)
 
     if(*sockfd < 0)
     {
