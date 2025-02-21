@@ -1,24 +1,42 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-#define SERVER_IP "127.0.0.1"
 #define BUFFER_SIZE 1024
-#define PORT 8080
+#define BASE 10
 
-void setup_socket(int *sockfd, struct sockaddr_in *server_addr);
+void setup_socket(int *sockfd, struct sockaddr_in *server_addr, const char *ip, uint16_t port);
 
-int main(void)
+int main(const int argc, const char *argv[])
 {
     int                sockfd;
+    const char        *server_ip = argv[1];
+    char              *endptr;
+    uint16_t           port;
     struct sockaddr_in server_addr;
     char               buffer[BUFFER_SIZE];
+    long               temp_port;
 
-    setup_socket(&sockfd, &server_addr);
+    if(argc != 3)
+    {
+        fprintf(stderr, "Usage: %s <server_ip> <port>\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    temp_port = strtol(argv[2], &endptr, BASE);
+    if(*endptr != '\0' || temp_port <= 0 || temp_port > UINT16_MAX)
+    {
+        fprintf(stderr, "Invalid port number.\n");
+        exit(EXIT_FAILURE);
+    }
+    port = (uint16_t)temp_port;
+
+    setup_socket(&sockfd, &server_addr, server_ip, port);
 
     // Connect to the server
     if(connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
@@ -27,7 +45,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    printf("Connected to server. Type 'exit' to quit.\n");
+    printf("Connected to server %s:%d. Type 'exit' to quit.\n", server_ip, port);
 
     while(1)
     {
@@ -56,7 +74,7 @@ int main(void)
     return 0;
 }
 
-void setup_socket(int *sockfd, struct sockaddr_in *server_addr)
+void setup_socket(int *sockfd, struct sockaddr_in *server_addr, const char *ip, uint16_t port)
 {
     // Create the socket
     *sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -68,8 +86,8 @@ void setup_socket(int *sockfd, struct sockaddr_in *server_addr)
 
     // Set up the server address structure
     server_addr->sin_family = AF_INET;
-    server_addr->sin_port   = htons(PORT);
-    if(inet_pton(AF_INET, SERVER_IP, &server_addr->sin_addr) <= 0)
+    server_addr->sin_port   = htons(port);
+    if(inet_pton(AF_INET, ip, &server_addr->sin_addr) <= 0)
     {
         perror("inet_pton failed");
         exit(EXIT_FAILURE);
